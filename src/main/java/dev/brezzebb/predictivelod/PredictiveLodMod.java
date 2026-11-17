@@ -28,7 +28,7 @@ public final class PredictiveLodMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(CommandManager.literal("vpregen")
                 .then(CommandManager.literal("start")
                     .then(CommandManager.argument("radius", IntegerArgumentType.integer(1, 32))
@@ -38,8 +38,11 @@ public final class PredictiveLodMod implements ModInitializer {
                             .executes(ctx -> start(ctx.getSource(),
                                 IntegerArgumentType.getInteger(ctx, "radius"),
                                 IntegerArgumentType.getInteger(ctx, "chunksPerTick"))))))
-                .then(CommandManager.literal("stop").executes(ctx -> stop(ctx.getSource()))
-                .then(CommandManager.literal("status").executes(ctx -> status(ctx.getSource())))));
+                .then(CommandManager.literal("stop")
+                    .executes(ctx -> stop(ctx.getSource())))
+                .then(CommandManager.literal("status")
+                    .executes(ctx -> status(ctx.getSource()))));
+        });
 
         ServerTickEvents.END_SERVER_TICK.register(PredictiveLodMod::tick);
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> reset());
@@ -112,7 +115,6 @@ public final class PredictiveLodMod implements ModInitializer {
             ChunkPos pos = QUEUE.poll();
             if (pos == null) break;
             try {
-                // FULL asks vanilla's server chunk manager to complete generation and save lifecycle.
                 targetWorld.getChunkManager().getChunk(pos.x, pos.z, ChunkStatus.FULL, true);
                 generated++;
             } catch (Throwable throwable) {
