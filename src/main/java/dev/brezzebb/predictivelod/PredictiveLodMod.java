@@ -60,7 +60,7 @@ public final class PredictiveLodMod implements ModInitializer {
         }
 
         QUEUE.clear();
-        targetWorld = player.getWorld();
+        targetWorld = player.getServerWorld();
         generated = 0;
         failed = 0;
         chunksPerTick = rate;
