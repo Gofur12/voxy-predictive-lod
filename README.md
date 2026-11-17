@@ -1,51 +1,30 @@
 # Voxy Predictive LOD
 
-Standalone Fabric addon for Minecraft Java 1.20.1. It continuously pre-generates real terrain around the player so Voxy can later import saved region data as LOD.
+Fabric addon for Minecraft Java 1.20.1. It pre-generates real terrain around the player for later Voxy LOD import.
 
-> This is real vanilla chunk generation, not speculative rendering. It changes the world save, consumes CPU/RAM/storage, and can cause lag. Back up the world first.
+> This performs real vanilla chunk generation on the integrated server thread. It can still cause stutter and memory pressure. Back up your world.
 
-## Automatic follow mode
+## Mobile-safe automatic mode
 
-- Automatically starts when a player joins a world.
-- Maintains a moving square radius of 8 chunks around the tracked player.
-- Adds newly encountered chunks as the player moves; already queued/generated positions are not added again during that session.
-- Conservative default: one chunk per second.
-- Use `/vpregen status` to inspect progress.
-- Use `/vpregen stop` to pause automatic generation.
+- Starts when a player joins a world.
+- Follows the player with a radius of 4 chunks.
+- Scans for newly nearby chunks every 5 seconds.
+- Generates at most 1 chunk every 5 seconds.
+- Queue is capped at 64 pending chunks.
+- Pauses generation when Java heap usage reaches 85%, and resumes below 72%.
+- Already queued/generated coordinates are not enqueued again during the same session.
 
-The current auto-follow session ends if the tracked player leaves the world or changes dimension. Rejoin to start a fresh session.
+Commands:
+- `/vpregen status` — show mode, queue, counters, and Java heap percentage.
+- `/vpregen stop` — stop automatic generation.
+- `/vpregen start <radius>` — manually generate around the player (radius 1–32), with the same conservative rate and heap protection.
 
-## Manual commands
+After generation, run `/voxy import current` to import saved regions into Voxy.
 
-- `/vpregen start <radius>` — generate a fixed square area around the player (radius 1–32).
-- `/vpregen start <radius> <chunksPerTick>` — control manual generation rate (1–4 chunks per server tick).
-- `/vpregen status` — show progress.
-- `/vpregen stop` — stop and clear the remaining queue.
+## Important limitations
 
-After terrain has been generated, run Voxy's importer in the same world:
-
-```
-/voxy import current
-```
-
-The addon does not call Voxy internals directly. Voxy import remains a separate step.
-
-## Compatibility
-
-- Minecraft Java 1.20.1
-- Fabric Loader + Fabric API
-- Voxy Mobile BB build for 1.20.1 (for the import step)
+The generation call is synchronous because it uses vanilla's full chunk-generation path; it cannot safely be moved to an arbitrary background thread. The mod therefore throttles work rather than pretending it is asynchronous. Heap protection monitors Java heap, not Android native/GPU memory, and cannot guarantee that a shader or renderer will never crash. This mod does not directly invoke Voxy's renderer or LOD upload pipeline.
 
 ## Build
 
-Requires JDK 17 and Gradle 8.x:
-
-```sh
-gradle build
-```
-
-Output: `build/libs/voxy-predictive-lod-0.1.0-alpha.1.jar`.
-
-## Performance notes
-
-Automatic mode generates at most one chunk per second and follows the player with an 8-chunk radius. Even throttled generation can cause stutter and substantially increase world size. It generates real chunks in the current world; it cannot generate remote multiplayer server chunks from a client.
+JDK 17 and Gradle 8.x. Output: `build/libs/voxy-predictive-lod-0.1.0-alpha.2.jar`.
