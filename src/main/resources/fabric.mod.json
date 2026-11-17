@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "voxy_predictive_lod",
+  "version": "${version}",
+  "name": "Voxy Predictive LOD",
+  "description": "Pre-generates unvisited terrain around the player for later Voxy LOD import.",
+  "authors": ["BrezzeBB"],
+  "environment": "*",
+  "entrypoints": {
+    "main": ["dev.brezzebb.predictivelod.PredictiveLodMod"]
+  },
+  "depends": {
+    "fabricloader": ">=0.14.22",
+    "minecraft": "1.20.1",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "voxy": "*"
+  }
+}
